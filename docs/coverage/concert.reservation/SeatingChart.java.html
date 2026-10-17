@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SeatingChart.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ConcertTicketing</a> &gt; <a href="index.source.html" class="el_package">concert.reservation</a> &gt; <span class="el_source">SeatingChart.java</span></div><h1>SeatingChart.java</h1><pre class="source lang-java linenums">package concert.reservation;
+
+import concert.BookingException;
+
+import java.sql.SQLException;
+import java.util.Objects;
+
+/** Validates event/seat inputs and reads current seat availability. */
+public class SeatingChart {
+    private final ReservationRepository repository;
+
+<span class="fc" id="L12">    public SeatingChart(ReservationRepository repository) {</span>
+<span class="fc" id="L13">        this.repository = Objects.requireNonNull(repository, &quot;repository&quot;);</span>
+<span class="fc" id="L14">    }</span>
+
+    public void checkAvailable(int eventId, int seatId) throws SQLException {
+<span class="fc bfc" id="L17" title="All 2 branches covered.">        if (eventId &lt;= 0) {</span>
+<span class="fc" id="L18">            throw new BookingException(&quot;Event ID must be positive&quot;);</span>
+        }
+<span class="fc bfc" id="L20" title="All 4 branches covered.">        if (seatId &lt; 1 || seatId &gt; 100) {</span>
+<span class="fc" id="L21">            throw new BookingException(&quot;Seat must be between 1 and 100&quot;);</span>
+        }
+<span class="fc bfc" id="L23" title="All 2 branches covered.">        if (repository.isReserved(eventId, seatId)) {</span>
+<span class="fc" id="L24">            throw new BookingException(&quot;Seat &quot; + seatId + &quot; is already reserved for event &quot; + eventId);</span>
+        }
+<span class="fc" id="L26">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

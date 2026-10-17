@@ -1,0 +1,17 @@
+SELECT * FROM workflows ORDER BY id
+[]
+
+SELECT * FROM seat_reservations ORDER BY id
+[]
+
+SELECT * FROM ticket_processing ORDER BY id
+[]
+
+SELECT * FROM ticket_access ORDER BY id
+[]
+
+SELECT * FROM gate_settings ORDER BY event_id
+[]
+
+SELECT * FROM workflow_events ORDER BY seq
+[]

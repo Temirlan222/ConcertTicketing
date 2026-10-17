@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SeatReservation.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ConcertTicketing</a> &gt; <a href="index.source.html" class="el_package">concert.reservation</a> &gt; <span class="el_source">SeatReservation.java</span></div><h1>SeatReservation.java</h1><pre class="source lang-java linenums">package concert.reservation;
+
+/** A reservation with a one-way NEW -&gt; RESERVED -&gt; RELEASED lifecycle. */
+public class SeatReservation {
+    public final int reservationId;
+    public final int eventId;
+    public final int seatId;
+    public final int price;
+    private String status;
+
+    public SeatReservation(int reservationId, int eventId, int seatId, int price) {
+<span class="fc" id="L12">        this(reservationId, eventId, seatId, price, &quot;NEW&quot;);</span>
+<span class="fc" id="L13">    }</span>
+
+<span class="fc" id="L15">    public SeatReservation(int reservationId, int eventId, int seatId, int price, String status) {</span>
+<span class="fc bfc" id="L16" title="All 4 branches covered.">        if (reservationId &lt;= 0 || eventId &lt;= 0) {</span>
+<span class="fc" id="L17">            throw new IllegalArgumentException(&quot;Reservation and event IDs must be positive&quot;);</span>
+        }
+<span class="fc bfc" id="L19" title="All 4 branches covered.">        if (seatId &lt; 1 || seatId &gt; 100) {</span>
+<span class="fc" id="L20">            throw new IllegalArgumentException(&quot;Seat must be between 1 and 100&quot;);</span>
+        }
+<span class="fc bfc" id="L22" title="All 2 branches covered.">        if (price &lt;= 0) {</span>
+<span class="fc" id="L23">            throw new IllegalArgumentException(&quot;Price must be positive&quot;);</span>
+        }
+<span class="fc bfc" id="L25" title="All 6 branches covered.">        if (!&quot;NEW&quot;.equals(status) &amp;&amp; !&quot;RESERVED&quot;.equals(status) &amp;&amp; !&quot;RELEASED&quot;.equals(status)) {</span>
+<span class="fc" id="L26">            throw new IllegalArgumentException(&quot;Invalid status: &quot; + status);</span>
+        }
+<span class="fc" id="L28">        this.reservationId = reservationId;</span>
+<span class="fc" id="L29">        this.eventId = eventId;</span>
+<span class="fc" id="L30">        this.seatId = seatId;</span>
+<span class="fc" id="L31">        this.price = price;</span>
+<span class="fc" id="L32">        this.status = status;</span>
+<span class="fc" id="L33">    }</span>
+
+    public void reserve() {
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        if (!&quot;NEW&quot;.equals(status)) {</span>
+<span class="fc" id="L37">            throw new IllegalArgumentException(&quot;Only a new reservation can be reserved&quot;);</span>
+        }
+<span class="fc" id="L39">        status = &quot;RESERVED&quot;;</span>
+<span class="fc" id="L40">    }</span>
+
+    public void release() {
+<span class="fc bfc" id="L43" title="All 2 branches covered.">        if (!&quot;RESERVED&quot;.equals(status)) {</span>
+<span class="fc" id="L44">            throw new IllegalArgumentException(&quot;Only a reserved seat can be released&quot;);</span>
+        }
+<span class="fc" id="L46">        status = &quot;RELEASED&quot;;</span>
+<span class="fc" id="L47">    }</span>
+
+    public String getStatus() {
+<span class="fc" id="L50">        return status;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

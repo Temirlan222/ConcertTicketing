@@ -1,0 +1,27 @@
+COMMAND
+USER_HOME\.jdks\openjdk-25.0.1\bin\java.exe --enable-native-access=ALL-UNNAMED -jar USER_HOME\Documents\Codex\2026-10-17\java-concertticketing-assignment-4-10-concert\outputs\ConcertTicketing\target\concert-ticketing.jar USER_HOME\Documents\Codex\2026-10-17\java-concertticketing-assignment-4-10-concert\work\cli-checks\run-2gkcdry9\restart_after_a\concert.db
+
+INPUT
+2
+0
+
+STDOUT
+Concert Ticketing | SQLite: USER_HOME\Documents\Codex\2026-10-17\java-concertticketing-assignment-4-10-concert\work\cli-checks\run-2gkcdry9\restart_after_a\concert.db
+Recovered: Workflow[id=1, eventId=100, seatId=25, ticketCode=CLI-RESTART, status=COMPLETED, failureReason=]
+
+1 Buy | 2 Inspect | 3 Gate open/close | 4 Recover | 5 Compensate | 6 Pause after A | 7 One stage | 0 Exit
+WORKFLOWS
+Workflow[id=1, eventId=100, seatId=25, ticketCode=CLI-RESTART, status=COMPLETED, failureReason=] events=[A_RESERVED, B_PRINTED, C_APPROVED]
+A RESERVATIONS
+1 event=100 seat=25 price=12000 RESERVED
+B TICKETS
+1 CLI-RESTART PRINTED
+C ACCESS / LOCAL REFUND CREDIT (KZT)
+1 CLI-RESTART event=100 APPROVED refund=0
+
+1 Buy | 2 Inspect | 3 Gate open/close | 4 Recover | 5 Compensate | 6 Pause after A | 7 One stage | 0 Exit
+
+STDERR
+
+EXIT CODE
+0

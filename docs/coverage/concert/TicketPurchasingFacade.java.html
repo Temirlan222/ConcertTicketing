@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TicketPurchasingFacade.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ConcertTicketing</a> &gt; <a href="index.source.html" class="el_package">concert</a> &gt; <span class="el_source">TicketPurchasingFacade.java</span></div><h1>TicketPurchasingFacade.java</h1><pre class="source lang-java linenums">package concert;
+
+import concert.reservation.*;
+import concert.processing.*;
+import concert.access.*;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+
+import static concert.Workflow.Status.*;
+
+/** Durable orchestration. Every call to advanceOne commits at most ONE stage. */
+public final class TicketPurchasingFacade {
+    private final Connection connection;
+    private final WorkflowRepository workflows;
+    private final ReservationRepository reservations;
+    private final TicketProcessingRepository tickets;
+    private final TicketAccessRepository access;
+    private final SeatingChart seating;
+<span class="fc" id="L20">    private final DynamicPricingEngine pricing = new DynamicPricingEngine();</span>
+    private final TicketPrinter printer;
+    private final AccessControlGate gate;
+<span class="fc" id="L23">    private final RefundService refunds = new RefundService();</span>
+
+<span class="fc" id="L25">    public TicketPurchasingFacade(Database database) {</span>
+<span class="fc" id="L26">        connection = database.connection();</span>
+<span class="fc" id="L27">        workflows = new WorkflowRepository(connection);</span>
+<span class="fc" id="L28">        reservations = new ReservationRepository(connection);</span>
+<span class="fc" id="L29">        tickets = new TicketProcessingRepository(connection);</span>
+<span class="fc" id="L30">        access = new TicketAccessRepository(connection);</span>
+<span class="fc" id="L31">        seating = new SeatingChart(reservations);</span>
+<span class="fc" id="L32">        printer = new TicketPrinter(new FraudChecker(tickets));</span>
+<span class="fc" id="L33">        gate = new AccessControlGate(access);</span>
+<span class="fc" id="L34">    }</span>
+
+    public Workflow buyTicket(int eventId, int seatId, String ticketCode) throws SQLException {
+<span class="fc" id="L37">        return resume(startPurchase(eventId, seatId, ticketCode).id());</span>
+    }
+
+    /** Persist user input; useful for a deliberate restart demonstration. */
+    public Workflow startPurchase(int eventId, int seatId, String ticketCode) throws SQLException {
+<span class="pc bpc" id="L42" title="1 of 2 branches missed.">        if (!connection.getAutoCommit()) {</span>
+<span class="nc" id="L43">            throw new SQLException(&quot;A purchase requires its own transaction&quot;);</span>
+        }
+<span class="fc" id="L45">        connection.setAutoCommit(false);</span>
+        try {
+<span class="fc" id="L47">            seating.checkAvailable(eventId, seatId);</span>
+<span class="pc bpc" id="L48" title="1 of 4 branches missed.">            if (ticketCode == null || ticketCode.isBlank()) {</span>
+<span class="fc" id="L49">                throw new BookingException(&quot;Ticket code must not be blank&quot;);</span>
+            }
+<span class="fc" id="L51">            var w = workflows.create(nextPurchaseId(), eventId, seatId, ticketCode.trim());</span>
+<span class="fc" id="L52">            connection.commit();</span>
+<span class="fc" id="L53">            return w;</span>
+<span class="fc" id="L54">        } catch (SQLException | RuntimeException e) {</span>
+<span class="fc" id="L55">            connection.rollback();</span>
+<span class="fc" id="L56">            throw e;</span>
+        } finally {
+<span class="fc" id="L58">            connection.setAutoCommit(true);</span>
+        }
+    }
+
+    // The facade alone knows all three id namespaces; direct subsystem records stay intact.
+    private int nextPurchaseId() throws SQLException {
+<span class="fc" id="L64">        int max = workflows.all().stream().mapToInt(Workflow::id).max().orElse(0);</span>
+<span class="fc" id="L65">        max = Math.max(max, reservations.all().stream().mapToInt(r -&gt; r.reservationId).max().orElse(0));</span>
+<span class="fc" id="L66">        max = Math.max(max, tickets.all().stream().mapToInt(t -&gt; t.id).max().orElse(0));</span>
+<span class="fc" id="L67">        max = Math.max(max, access.all().stream().mapToInt(c -&gt; c.id).max().orElse(0));</span>
+<span class="fc" id="L68">        return Math.incrementExact(max);</span>
+    }
+
+    public Workflow resume(int id) throws SQLException {
+<span class="fc" id="L72">        var w = load(id);</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">        while (!w.isTerminal()) {</span>
+<span class="fc" id="L74">            w = advanceOne(id);</span>
+        }
+<span class="fc" id="L76">        return w;</span>
+    }
+
+    public Workflow advanceOne(int id) throws SQLException {
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">        if (!connection.getAutoCommit()) {</span>
+<span class="nc" id="L81">            throw new SQLException(&quot;A stage requires its own transaction&quot;);</span>
+        }
+<span class="fc" id="L83">        connection.setAutoCommit(false);</span>
+        try {
+<span class="fc" id="L85">            var w = load(id);</span>
+<span class="pc bpc" id="L86" title="1 of 6 branches missed.">            switch (w.status()) {</span>
+<span class="fc" id="L87">                case PENDING_A -&gt; reserve(w);</span>
+<span class="fc" id="L88">                case PENDING_B -&gt; print(w);</span>
+<span class="fc" id="L89">                case PENDING_C -&gt; finalizeAccess(w);</span>
+<span class="fc" id="L90">                case COMPENSATING_B -&gt; voidTicket(w);</span>
+<span class="fc" id="L91">                case COMPENSATING_A -&gt; release(w);</span>
+                case COMPLETED, COMPENSATED -&gt; {
+                }
+            }
+<span class="fc" id="L95">            connection.commit();</span>
+<span class="fc" id="L96">            return load(id);</span>
+<span class="fc" id="L97">        } catch (SQLException | RuntimeException e) {</span>
+<span class="fc" id="L98">            connection.rollback();</span>
+<span class="fc" id="L99">            throw e;</span>
+        } finally {
+<span class="fc" id="L101">            connection.setAutoCommit(true);</span>
+        }
+    }
+
+    /** Completed purchases are deliberately outside manual-compensation scope. */
+    public Workflow startCompensation(int id) throws SQLException {
+<span class="pc bpc" id="L107" title="1 of 2 branches missed.">        if (!connection.getAutoCommit()) {</span>
+<span class="nc" id="L108">            throw new SQLException(&quot;Compensation requires its own transaction&quot;);</span>
+        }
+<span class="fc" id="L110">        connection.setAutoCommit(false);</span>
+        try {
+<span class="fc" id="L112">            var w = load(id);</span>
+<span class="fc bfc" id="L113" title="All 5 branches covered.">            switch (w.status()) {</span>
+<span class="fc" id="L114">                case PENDING_A -&gt; workflows.save(w.transition(COMPENSATED, &quot;Cancelled before reservation&quot;));</span>
+<span class="fc" id="L115">                case PENDING_B -&gt; workflows.save(w.transition(COMPENSATING_A, &quot;Manual compensation&quot;));</span>
+<span class="fc" id="L116">                case PENDING_C -&gt; workflows.save(w.transition(COMPENSATING_B, &quot;Manual compensation&quot;));</span>
+<span class="fc" id="L117">                case COMPLETED -&gt; throw new BookingException(&quot;Completed purchase cannot be manually compensated&quot;);</span>
+                case COMPENSATING_B, COMPENSATING_A, COMPENSATED -&gt; {
+                }
+            }
+<span class="fc" id="L121">            connection.commit();</span>
+<span class="fc" id="L122">        } catch (SQLException | RuntimeException e) {</span>
+<span class="fc" id="L123">            connection.rollback();</span>
+<span class="fc" id="L124">            throw e;</span>
+        } finally {
+<span class="fc" id="L126">            connection.setAutoCommit(true);</span>
+        }
+<span class="fc" id="L128">        return resume(id);</span>
+    }
+
+    private Workflow load(int id) throws SQLException {
+<span class="fc" id="L132">        return workflows.find(id).orElseThrow(() -&gt; new BookingException(&quot;Unknown workflow: &quot; + id));</span>
+    }
+
+    private void reserve(Workflow w) throws SQLException {
+        try {
+<span class="fc" id="L137">            seating.checkAvailable(w.eventId(), w.seatId());</span>
+<span class="nc" id="L138">        } catch (BookingException e) {</span>
+<span class="nc" id="L139">            workflows.save(w.transition(COMPENSATED, e.getMessage()));</span>
+<span class="nc" id="L140">            workflows.event(w.id(), &quot;A_REJECTED&quot;);</span>
+<span class="nc" id="L141">            return;</span>
+<span class="fc" id="L142">        }</span>
+<span class="fc" id="L143">        var reservation = new SeatReservation(w.id(), w.eventId(), w.seatId(), pricing.priceFor(w.seatId()));</span>
+<span class="fc" id="L144">        reservation.reserve();</span>
+<span class="fc" id="L145">        reservations.save(reservation);</span>
+<span class="fc" id="L146">        workflows.event(w.id(), &quot;A_RESERVED&quot;);</span>
+<span class="fc" id="L147">        workflows.save(w.transition(PENDING_B, &quot;&quot;));</span>
+<span class="fc" id="L148">    }</span>
+
+    private void print(Workflow w) throws SQLException {
+<span class="fc" id="L151">        var reservation = loadReservation(w);</span>
+        TicketProcessing ticket;
+        try {
+<span class="fc bfc" id="L154" title="All 2 branches covered.">            if (!&quot;RESERVED&quot;.equals(reservation.getStatus())) {</span>
+<span class="fc" id="L155">                throw new BookingException(&quot;Saved reservation is no longer active&quot;);</span>
+            }
+<span class="fc" id="L157">            ticket = printer.issue(w.id(), w.ticketCode());</span>
+<span class="fc" id="L158">        } catch (BookingException e) {</span>
+<span class="fc" id="L159">            workflows.event(w.id(), &quot;B_REJECTED&quot;);</span>
+<span class="fc" id="L160">            workflows.save(w.transition(COMPENSATING_A, e.getMessage()));</span>
+<span class="fc" id="L161">            return;</span>
+<span class="fc" id="L162">        }</span>
+<span class="fc" id="L163">        tickets.save(ticket);</span>
+<span class="fc" id="L164">        workflows.event(w.id(), &quot;B_PRINTED&quot;);</span>
+<span class="fc" id="L165">        workflows.save(w.transition(PENDING_C, &quot;&quot;));</span>
+<span class="fc" id="L166">    }</span>
+
+    private void finalizeAccess(Workflow w) throws SQLException {
+<span class="fc" id="L169">        var reservation = loadReservation(w);</span>
+<span class="fc" id="L170">        var ticket = loadTicket(w);</span>
+<span class="fc" id="L171">        var c = new TicketAccess(w.id(), w.ticketCode(), w.eventId(), reservation.price);</span>
+        try {
+<span class="fc bfc" id="L173" title="All 4 branches covered.">            if (!&quot;RESERVED&quot;.equals(reservation.getStatus()) || !&quot;PRINTED&quot;.equals(ticket.getStatus())) {</span>
+<span class="fc" id="L174">                throw new BookingException(&quot;An earlier saved stage is no longer active&quot;);</span>
+            }
+<span class="fc" id="L176">            gate.checkOpen(w.eventId());</span>
+<span class="fc" id="L177">        } catch (BookingException e) {</span>
+<span class="fc" id="L178">            c.reject();</span>
+<span class="fc" id="L179">            refunds.refund(c);</span>
+<span class="fc" id="L180">            access.save(c);</span>
+<span class="fc" id="L181">            workflows.event(w.id(), &quot;C_REFUNDED&quot;);</span>
+<span class="fc" id="L182">            workflows.save(w.transition(COMPENSATING_B, e.getMessage()));</span>
+<span class="fc" id="L183">            return;</span>
+<span class="fc" id="L184">        }</span>
+<span class="fc" id="L185">        c.approve();</span>
+<span class="fc" id="L186">        access.save(c);</span>
+<span class="fc" id="L187">        workflows.event(w.id(), &quot;C_APPROVED&quot;);</span>
+<span class="fc" id="L188">        workflows.save(w.transition(COMPLETED, &quot;&quot;));</span>
+<span class="fc" id="L189">    }</span>
+
+    private void voidTicket(Workflow w) throws SQLException {
+<span class="fc" id="L192">        var ticket = loadTicket(w);</span>
+<span class="fc bfc" id="L193" title="All 2 branches covered.">        if (!&quot;VOIDED&quot;.equals(ticket.getStatus())) {</span>
+<span class="fc" id="L194">            ticket.voidTicket();</span>
+<span class="fc" id="L195">            tickets.save(ticket);</span>
+<span class="fc" id="L196">            workflows.event(w.id(), &quot;B_VOIDED&quot;);</span>
+        }
+<span class="fc" id="L198">        workflows.save(w.transition(COMPENSATING_A, w.failureReason()));</span>
+<span class="fc" id="L199">    }</span>
+
+    private void release(Workflow w) throws SQLException {
+<span class="fc" id="L202">        var reservation = loadReservation(w);</span>
+<span class="fc bfc" id="L203" title="All 2 branches covered.">        if (!&quot;RELEASED&quot;.equals(reservation.getStatus())) {</span>
+<span class="fc" id="L204">            reservation.release();</span>
+<span class="fc" id="L205">            reservations.save(reservation);</span>
+<span class="fc" id="L206">            workflows.event(w.id(), &quot;A_RELEASED&quot;);</span>
+        }
+<span class="fc" id="L208">        workflows.save(w.transition(COMPENSATED, w.failureReason()));</span>
+<span class="fc" id="L209">    }</span>
+
+    private SeatReservation loadReservation(Workflow w) throws SQLException {
+<span class="fc" id="L212">        var reservation = reservations.find(w.id())</span>
+<span class="pc" id="L213">                .orElseThrow(() -&gt; new BookingException(&quot;Saved reservation missing&quot;));</span>
+<span class="pc bpc" id="L214" title="2 of 4 branches missed.">        if (reservation.eventId != w.eventId() || reservation.seatId != w.seatId()) {</span>
+<span class="nc" id="L215">            throw new BookingException(&quot;Saved reservation does not match workflow&quot;);</span>
+        }
+<span class="fc" id="L217">        return reservation;</span>
+    }
+
+    private TicketProcessing loadTicket(Workflow w) throws SQLException {
+<span class="pc" id="L221">        var ticket = tickets.find(w.id()).orElseThrow(() -&gt; new BookingException(&quot;Saved ticket missing&quot;));</span>
+<span class="pc bpc" id="L222" title="1 of 2 branches missed.">        if (!ticket.ticketCode.equals(w.ticketCode())) {</span>
+<span class="nc" id="L223">            throw new BookingException(&quot;Saved ticket does not match workflow&quot;);</span>
+        }
+<span class="fc" id="L225">        return ticket;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

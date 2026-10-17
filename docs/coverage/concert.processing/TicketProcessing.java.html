@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TicketProcessing.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ConcertTicketing</a> &gt; <a href="index.source.html" class="el_package">concert.processing</a> &gt; <span class="el_source">TicketProcessing.java</span></div><h1>TicketProcessing.java</h1><pre class="source lang-java linenums">package concert.processing;
+
+import concert.BookingException;
+
+public class TicketProcessing {
+    public final int id;
+    public final String ticketCode;
+    private String status;
+
+    public TicketProcessing(int id, String ticketCode) {
+<span class="fc" id="L11">        this(id, ticketCode, &quot;PENDING&quot;);</span>
+<span class="fc" id="L12">    }</span>
+
+<span class="fc" id="L14">    public TicketProcessing(int id, String ticketCode, String status) {</span>
+<span class="fc bfc" id="L15" title="All 2 branches covered.">        if (id &lt;= 0) {</span>
+<span class="fc" id="L16">            throw new BookingException(&quot;Ticket id must be positive&quot;);</span>
+        }
+<span class="fc bfc" id="L18" title="All 4 branches covered.">        if (ticketCode == null || ticketCode.isBlank()) {</span>
+<span class="fc" id="L19">            throw new BookingException(&quot;Ticket code is required&quot;);</span>
+        }
+<span class="fc bfc" id="L21" title="All 6 branches covered.">        if (!&quot;PENDING&quot;.equals(status) &amp;&amp; !&quot;PRINTED&quot;.equals(status) &amp;&amp; !&quot;VOIDED&quot;.equals(status)) {</span>
+<span class="fc" id="L22">            throw new BookingException(&quot;Invalid ticket status: &quot; + status);</span>
+        }
+<span class="fc" id="L24">        this.id = id;</span>
+<span class="fc" id="L25">        this.ticketCode = ticketCode.trim();</span>
+<span class="fc" id="L26">        this.status = status;</span>
+<span class="fc" id="L27">    }</span>
+
+    public String getStatus() {
+<span class="fc" id="L30">        return status;</span>
+    }
+
+    public void print() {
+<span class="fc bfc" id="L34" title="All 2 branches covered.">        if (!&quot;PENDING&quot;.equals(status)) {</span>
+<span class="fc" id="L35">            throw new BookingException(&quot;Only a pending ticket can be printed&quot;);</span>
+        }
+<span class="fc" id="L37">        status = &quot;PRINTED&quot;;</span>
+<span class="fc" id="L38">    }</span>
+
+    public void voidTicket() {
+<span class="fc bfc" id="L41" title="All 2 branches covered.">        if (!&quot;PRINTED&quot;.equals(status)) {</span>
+<span class="fc" id="L42">            throw new BookingException(&quot;Only a printed ticket can be voided&quot;);</span>
+        }
+<span class="fc" id="L44">        status = &quot;VOIDED&quot;;</span>
+<span class="fc" id="L45">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

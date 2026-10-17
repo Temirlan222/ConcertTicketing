@@ -1,0 +1,45 @@
+COMMAND
+USER_HOME\.jdks\openjdk-25.0.1\bin\java.exe --enable-native-access=ALL-UNNAMED -jar USER_HOME\Documents\Codex\2026-10-17\java-concertticketing-assignment-4-10-concert\outputs\ConcertTicketing\target\concert-ticketing.jar USER_HOME\Documents\Codex\2026-10-17\java-concertticketing-assignment-4-10-concert\work\cli-checks\run-2gkcdry9\restart_during_compensation\concert.db --no-recover
+
+INPUT
+6
+100
+30
+CLI-PARTIAL-UNDO
+7
+1
+3
+100
+0
+7
+1
+0
+
+STDOUT
+Concert Ticketing | SQLite: USER_HOME\Documents\Codex\2026-10-17\java-concertticketing-assignment-4-10-concert\work\cli-checks\run-2gkcdry9\restart_during_compensation\concert.db
+
+1 Buy | 2 Inspect | 3 Gate open/close | 4 Recover | 5 Compensate | 6 Pause after A | 7 One stage | 0 Exit
+Event id (>0):
+Seat (1..100):
+Ticket code (reuse a saved code to cause B refusal):
+Workflow[id=1, eventId=100, seatId=30, ticketCode=CLI-PARTIAL-UNDO, status=PENDING_B, failureReason=]
+
+1 Buy | 2 Inspect | 3 Gate open/close | 4 Recover | 5 Compensate | 6 Pause after A | 7 One stage | 0 Exit
+Workflow id:
+Workflow[id=1, eventId=100, seatId=30, ticketCode=CLI-PARTIAL-UNDO, status=PENDING_C, failureReason=]
+
+1 Buy | 2 Inspect | 3 Gate open/close | 4 Recover | 5 Compensate | 6 Pause after A | 7 One stage | 0 Exit
+Event id:
+Open=1, closed=0:
+Gate saved: 0
+
+1 Buy | 2 Inspect | 3 Gate open/close | 4 Recover | 5 Compensate | 6 Pause after A | 7 One stage | 0 Exit
+Workflow id:
+Workflow[id=1, eventId=100, seatId=30, ticketCode=CLI-PARTIAL-UNDO, status=COMPENSATING_B, failureReason=Access gate is closed for event 100]
+
+1 Buy | 2 Inspect | 3 Gate open/close | 4 Recover | 5 Compensate | 6 Pause after A | 7 One stage | 0 Exit
+
+STDERR
+
+EXIT CODE
+0

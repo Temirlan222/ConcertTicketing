@@ -1,0 +1,59 @@
+COMMAND
+USER_HOME\.jdks\openjdk-25.0.1\bin\java.exe --enable-native-access=ALL-UNNAMED -jar USER_HOME\Documents\Codex\2026-10-17\java-concertticketing-assignment-4-10-concert\outputs\ConcertTicketing\target\concert-ticketing.jar USER_HOME\Documents\Codex\2026-10-17\java-concertticketing-assignment-4-10-concert\work\cli-checks\run-2gkcdry9\invalid_input\concert.db
+
+INPUT
+1
+0
+1
+BAD-EVENT
+1
+100
+101
+BAD-SEAT
+1
+100
+1
+
+1
+not-a-number
+3
+100
+2
+0
+
+STDOUT
+Concert Ticketing | SQLite: USER_HOME\Documents\Codex\2026-10-17\java-concertticketing-assignment-4-10-concert\work\cli-checks\run-2gkcdry9\invalid_input\concert.db
+
+1 Buy | 2 Inspect | 3 Gate open/close | 4 Recover | 5 Compensate | 6 Pause after A | 7 One stage | 0 Exit
+Event id (>0):
+Seat (1..100):
+Ticket code (reuse a saved code to cause B refusal):
+Rejected: Event ID must be positive
+
+1 Buy | 2 Inspect | 3 Gate open/close | 4 Recover | 5 Compensate | 6 Pause after A | 7 One stage | 0 Exit
+Event id (>0):
+Seat (1..100):
+Ticket code (reuse a saved code to cause B refusal):
+Rejected: Seat must be between 1 and 100
+
+1 Buy | 2 Inspect | 3 Gate open/close | 4 Recover | 5 Compensate | 6 Pause after A | 7 One stage | 0 Exit
+Event id (>0):
+Seat (1..100):
+Ticket code (reuse a saved code to cause B refusal):
+Rejected: Ticket code must not be blank
+
+1 Buy | 2 Inspect | 3 Gate open/close | 4 Recover | 5 Compensate | 6 Pause after A | 7 One stage | 0 Exit
+Event id (>0):
+Rejected: For input string: "not-a-number"
+
+1 Buy | 2 Inspect | 3 Gate open/close | 4 Recover | 5 Compensate | 6 Pause after A | 7 One stage | 0 Exit
+Event id:
+Open=1, closed=0:
+Rejected: Enter 1 or 0
+
+1 Buy | 2 Inspect | 3 Gate open/close | 4 Recover | 5 Compensate | 6 Pause after A | 7 One stage | 0 Exit
+
+STDERR
+
+EXIT CODE
+0

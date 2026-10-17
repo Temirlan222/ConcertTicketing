@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1560" height="1450" viewBox="0 0 1560 1450" role="img" aria-labelledby="title desc">
+<title id="title">Concert Ticketing — UML class diagram</title>
+<desc id="desc">Main uses two facades. Purchasing coordinates independent reservation, processing and access packages. Repositories use JDBC Connection from Database. Workflow and WorkflowRepository persist orchestration.</desc>
+<defs>
+ <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#49566b"/></marker>
+ <style>text{font-family:Segoe UI,Arial,sans-serif;fill:#172234}.title{font-size:27px;font-weight:700}.name{font-size:18px;font-weight:650}.body{font-size:15px}.label{font-size:14px;fill:#49566b}.box{fill:white;stroke:#49566b;stroke-width:1.5}.line{fill:none;stroke:#49566b;stroke-width:1.6;marker-end:url(#arrow)}.dep{fill:none;stroke:#49566b;stroke-width:1.6;stroke-dasharray:7 5;marker-end:url(#arrow)}.sep{stroke:#a9b3c3;stroke-width:1}.pkg{stroke-width:1.5;rx:12}</style>
+</defs>
+<rect width="1560" height="1450" fill="#f5f7fb"/>
+<text x="40" y="44" class="title">Concert Ticketing · Class diagram</text>
+<text x="40" y="73" class="body">Arrows show uses / references. Each subsystem has exactly four classes; no subsystem imports another.</text>
+
+<rect x="40" y="100" width="1480" height="440" fill="#edf0f7" stroke="#b6c0d1" class="pkg"/>
+<text x="60" y="129" class="name">package concert — client, facades and durable workflow</text>
+
+<rect x="60" y="155" width="280" height="95" class="box"/><text x="76" y="181" class="name">Main</text><line x1="60" y1="194" x2="340" y2="194" class="sep"/><text x="76" y="219" class="body">+ main(args: String[]): void</text><text x="76" y="241" class="body">CLI / startup recovery</text>
+
+<rect x="390" y="155" width="350" height="190" class="box"/><text x="406" y="181" class="name">TicketPurchasingFacade</text><line x1="390" y1="194" x2="740" y2="194" class="sep"/><text x="406" y="219" class="body">+ buyTicket(eventId, seatId, code)</text><text x="406" y="243" class="body">+ startPurchase(eventId, seatId, code)</text><text x="406" y="267" class="body">+ resume(id): Workflow</text><text x="406" y="291" class="body">+ advanceOne(id): Workflow</text><text x="406" y="315" class="body">+ startCompensation(id): Workflow</text><text x="406" y="337" class="label">owns stage transaction boundaries</text>
+
+<rect x="790" y="155" width="360" height="190" class="box"/><text x="806" y="181" class="name">TicketPurchasingAdminFacade</text><line x1="790" y1="194" x2="1150" y2="194" class="sep"/><text x="806" y="219" class="body">+ getPersistedState(id): Workflow</text><text x="806" y="243" class="body">+ listPurchases(): List&lt;Workflow&gt;</text><text x="806" y="267" class="body">+ inspect(): String</text><text x="806" y="291" class="body">+ recoverAll(): List&lt;Workflow&gt;</text><text x="806" y="315" class="body">+ startCompensation(id): Workflow</text><text x="806" y="337" class="body">+ setGateOpen(eventId, open): void</text>
+
+<rect x="1200" y="155" width="300" height="135" class="box"/><text x="1216" y="181" class="name">Database «AutoCloseable»</text><line x1="1200" y1="194" x2="1500" y2="194" class="sep"/><text x="1216" y="219" class="body">+ Database(path: Path)</text><text x="1216" y="243" class="body">+ connection(): Connection</text><text x="1216" y="267" class="body">+ close(): void</text>
+
+<rect x="60" y="390" width="520" height="125" class="box"/><text x="76" y="416" class="name">Workflow «record»</text><line x1="60" y1="429" x2="580" y2="429" class="sep"/><text x="76" y="453" class="body">id, eventId, seatId, ticketCode, status, failureReason</text><text x="76" y="477" class="body">+ transition(next: Status, reason): Workflow</text><text x="76" y="501" class="body">+ isTerminal(): boolean   ·   nested enum Status</text>
+
+<rect x="630" y="390" width="520" height="125" class="box"/><text x="646" y="416" class="name">WorkflowRepository</text><line x1="630" y1="429" x2="1150" y2="429" class="sep"/><text x="646" y="453" class="body">- connection: Connection</text><text x="646" y="477" class="body">+ create(...), find(id), all(), save(workflow)</text><text x="646" y="501" class="body">+ event(id, action), events(id)</text>
+
+<rect x="1200" y="390" width="300" height="100" class="box"/><text x="1216" y="416" class="name">BookingException</text><line x1="1200" y1="429" x2="1500" y2="429" class="sep"/><text x="1216" y="453" class="body">extends RuntimeException</text><text x="1216" y="477" class="body">message / message + cause</text>
+
+<path d="M340 180H390" class="dep"/><path d="M200 250V365H970V345" class="dep"/><path d="M790 265H740" class="line"/><path d="M740 180H770V140H1350V155" class="dep"/><path d="M565 345V370H890V390" class="line"/><path d="M630 452H580" class="dep"/>
+
+<rect x="40" y="610" width="470" height="665" fill="#eaf4ff" stroke="#82a9d4" class="pkg"/><text x="60" y="640" class="name">A · concert.reservation</text>
+<rect x="60" y="670" width="430" height="170" class="box"/><text x="76" y="697" class="name">SeatReservation</text><line x1="60" y1="710" x2="490" y2="710" class="sep"/><text x="76" y="736" class="body">+ final reservationId, eventId, seatId, price: int</text><text x="76" y="760" class="body">- status: String</text><text x="76" y="784" class="body">+ reserve(), release(), getStatus()</text><text x="76" y="810" class="label">NEW → RESERVED → RELEASED</text>
+<rect x="60" y="875" width="430" height="105" class="box"/><text x="76" y="902" class="name">SeatingChart</text><line x1="60" y1="915" x2="490" y2="915" class="sep"/><text x="76" y="939" class="body">- repository: ReservationRepository</text><text x="76" y="963" class="body">+ checkAvailable(eventId, seatId): void</text>
+<rect x="60" y="1010" width="430" height="80" class="box"/><text x="76" y="1037" class="name">DynamicPricingEngine</text><line x1="60" y1="1050" x2="490" y2="1050" class="sep"/><text x="76" y="1076" class="body">+ priceFor(seatId): int   ·   KZT</text>
+<rect x="60" y="1120" width="430" height="125" class="box"/><text x="76" y="1147" class="name">ReservationRepository</text><line x1="60" y1="1160" x2="490" y2="1160" class="sep"/><text x="76" y="1185" class="body">- connection: Connection</text><text x="76" y="1209" class="body">+ save(reservation), find(id), all()</text><text x="76" y="1233" class="body">+ isReserved(eventId, seatId): boolean</text>
+<path d="M490 940H502V1180H490" class="line"/><path d="M60 1180H48V755H60" class="dep"/>
+
+<rect x="545" y="610" width="470" height="665" fill="#eff8ed" stroke="#98b88f" class="pkg"/><text x="565" y="640" class="name">B · concert.processing</text>
+<rect x="565" y="670" width="430" height="170" class="box"/><text x="581" y="697" class="name">TicketProcessing</text><line x1="565" y1="710" x2="995" y2="710" class="sep"/><text x="581" y="736" class="body">+ final id: int, ticketCode: String</text><text x="581" y="760" class="body">- status: String</text><text x="581" y="784" class="body">+ print(), voidTicket(), getStatus()</text><text x="581" y="810" class="label">PENDING → PRINTED → VOIDED</text>
+<rect x="565" y="875" width="430" height="105" class="box"/><text x="581" y="902" class="name">TicketPrinter</text><line x1="565" y1="915" x2="995" y2="915" class="sep"/><text x="581" y="939" class="body">- fraudChecker: FraudChecker</text><text x="581" y="963" class="body">+ issue(id, ticketCode): TicketProcessing</text>
+<rect x="565" y="1010" width="430" height="80" class="box"/><text x="581" y="1037" class="name">FraudChecker</text><line x1="565" y1="1050" x2="995" y2="1050" class="sep"/><text x="581" y="1076" class="body">+ check(ticketCode): void</text>
+<rect x="565" y="1120" width="430" height="125" class="box"/><text x="581" y="1147" class="name">TicketProcessingRepository</text><line x1="565" y1="1160" x2="995" y2="1160" class="sep"/><text x="581" y="1185" class="body">- connection: Connection</text><text x="581" y="1209" class="body">+ save(ticket), find(id), all()</text><text x="581" y="1233" class="body">+ existsTicketCode(code): boolean</text>
+<path d="M780 980V1010" class="line"/><path d="M780 1090V1120" class="line"/><path d="M780 875V840" class="dep"/><path d="M565 1180H553V755H565" class="dep"/>
+
+<rect x="1050" y="610" width="470" height="665" fill="#fff3e7" stroke="#d0ac7f" class="pkg"/><text x="1070" y="640" class="name">C · concert.access</text>
+<rect x="1070" y="670" width="430" height="170" class="box"/><text x="1086" y="697" class="name">TicketAccess</text><line x1="1070" y1="710" x2="1500" y2="710" class="sep"/><text x="1086" y="736" class="body">+ final id, eventId, amount: int; ticketCode</text><text x="1086" y="760" class="body">- status: String, refundedAmount: int</text><text x="1086" y="784" class="body">+ approve(), reject(), refund(), getters</text><text x="1086" y="810" class="label">PENDING → APPROVED / REJECTED → REFUNDED</text>
+<rect x="1070" y="875" width="430" height="105" class="box"/><text x="1086" y="902" class="name">AccessControlGate</text><line x1="1070" y1="915" x2="1500" y2="915" class="sep"/><text x="1086" y="939" class="body">- repository: TicketAccessRepository</text><text x="1086" y="963" class="body">+ checkOpen(eventId): void</text>
+<rect x="1070" y="1010" width="430" height="80" class="box"/><text x="1086" y="1037" class="name">RefundService</text><line x1="1070" y1="1050" x2="1500" y2="1050" class="sep"/><text x="1086" y="1076" class="body">+ refund(access: TicketAccess): void</text>
+<rect x="1070" y="1120" width="430" height="125" class="box"/><text x="1086" y="1147" class="name">TicketAccessRepository</text><line x1="1070" y1="1160" x2="1500" y2="1160" class="sep"/><text x="1086" y="1185" class="body">- connection: Connection</text><text x="1086" y="1209" class="body">+ save(access), find(id), all()</text><text x="1086" y="1233" class="body">+ isGateOpen(eventId), setGateOpen(eventId, open)</text>
+<path d="M1500 940H1512V1180H1500" class="line"/><path d="M1070 1050H1058V755H1070" class="dep"/><path d="M1070 1180H1054V820H1070" class="dep"/>
+
+<path d="M565 345V565H275V610" class="dep"/><path d="M565 565H780V610" class="dep"/><path d="M780 565H1285V610" class="dep"/>
+<text x="365" y="585" class="label">facade coordinates A → B → C; compensation runs B → A</text>
+
+<rect x="40" y="1310" width="1480" height="103" fill="white" stroke="#b6c0d1" rx="8"/>
+<text x="60" y="1339" class="body">Persistence: all four repositories use JDBC Connection supplied by Database (SQLite).</text>
+<text x="60" y="1366" class="body">Shared dependency: domain/service validation may throw BookingException; SeatReservation preserves IllegalArgumentException.</text>
+<text x="60" y="1393" class="body">Workflow.Status: PENDING_A · PENDING_B · PENDING_C · COMPENSATING_B · COMPENSATING_A · COMPLETED · COMPENSATED</text>
+</svg>

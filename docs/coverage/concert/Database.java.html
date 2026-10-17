@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Database.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ConcertTicketing</a> &gt; <a href="index.source.html" class="el_package">concert</a> &gt; <span class="el_source">Database.java</span></div><h1>Database.java</h1><pre class="source lang-java linenums">package concert;
+
+import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+/** One local SQLite connection; repositories own their SQL, facade owns stage transactions. */
+public final class Database implements AutoCloseable {
+    private final Connection connection;
+
+<span class="fc" id="L12">    public Database(Path path) throws SQLException {</span>
+<span class="fc" id="L13">        connection = DriverManager.getConnection(&quot;jdbc:sqlite:&quot; + path.toAbsolutePath());</span>
+<span class="fc" id="L14">        try (var s = connection.createStatement()) {</span>
+<span class="fc" id="L15">            s.execute(&quot;PRAGMA foreign_keys=ON&quot;);</span>
+<span class="fc" id="L16">            s.execute(&quot;PRAGMA busy_timeout=5000&quot;);</span>
+<span class="fc" id="L17">            s.execute(&quot;&quot;&quot;</span>
+                CREATE TABLE IF NOT EXISTS seat_reservations(
+                  id INTEGER PRIMARY KEY, event_id INTEGER NOT NULL CHECK(event_id&gt;0),
+                  seat_id INTEGER NOT NULL CHECK(seat_id BETWEEN 1 AND 100),
+                  price INTEGER NOT NULL CHECK(price&gt;0),
+                  status TEXT NOT NULL CHECK(status IN ('NEW','RESERVED','RELEASED')))
+                &quot;&quot;&quot;);
+<span class="fc" id="L24">            s.execute(&quot;CREATE UNIQUE INDEX IF NOT EXISTS reserved_seat ON seat_reservations(event_id,seat_id) WHERE status='RESERVED'&quot;);</span>
+<span class="fc" id="L25">            s.execute(&quot;&quot;&quot;</span>
+                CREATE TABLE IF NOT EXISTS ticket_processing(
+                  id INTEGER PRIMARY KEY, ticket_code TEXT NOT NULL UNIQUE,
+                  status TEXT NOT NULL CHECK(status IN ('PENDING','PRINTED','VOIDED')))
+                &quot;&quot;&quot;);
+<span class="fc" id="L30">            s.execute(&quot;&quot;&quot;</span>
+                CREATE TABLE IF NOT EXISTS ticket_access(
+                  id INTEGER PRIMARY KEY, ticket_code TEXT NOT NULL, event_id INTEGER NOT NULL,
+                  amount INTEGER NOT NULL CHECK(amount&gt;0),
+                  status TEXT NOT NULL CHECK(status IN ('PENDING','APPROVED','REJECTED','REFUNDED')),
+                  refunded_amount INTEGER NOT NULL CHECK(refunded_amount BETWEEN 0 AND amount))
+                &quot;&quot;&quot;);
+<span class="fc" id="L37">            s.execute(&quot;CREATE TABLE IF NOT EXISTS gate_settings(event_id INTEGER PRIMARY KEY CHECK(event_id&gt;0),is_open INTEGER NOT NULL CHECK(is_open IN (0,1)))&quot;);</span>
+<span class="fc" id="L38">            s.execute(&quot;&quot;&quot;</span>
+                CREATE TABLE IF NOT EXISTS workflows(
+                  id INTEGER PRIMARY KEY AUTOINCREMENT,event_id INTEGER NOT NULL,seat_id INTEGER NOT NULL,
+                  ticket_code TEXT NOT NULL,status TEXT NOT NULL CHECK(status IN
+                    ('PENDING_A','PENDING_B','PENDING_C','COMPENSATING_B','COMPENSATING_A','COMPLETED','COMPENSATED')),
+                  failure_reason TEXT NOT NULL DEFAULT '')
+                &quot;&quot;&quot;);
+<span class="fc" id="L45">            s.execute(&quot;&quot;&quot;</span>
+                CREATE TABLE IF NOT EXISTS workflow_events(
+                  seq INTEGER PRIMARY KEY AUTOINCREMENT,workflow_id INTEGER NOT NULL REFERENCES workflows(id),
+                  action TEXT NOT NULL, UNIQUE(workflow_id,action))
+                &quot;&quot;&quot;);
+<span class="nc" id="L50">        } catch (SQLException e) {</span>
+<span class="nc" id="L51">            connection.close();</span>
+<span class="nc" id="L52">            throw e;</span>
+<span class="fc" id="L53">        }</span>
+<span class="fc" id="L54">    }</span>
+
+<span class="fc" id="L56">    public Connection connection() { return connection; }</span>
+<span class="fc" id="L57">    @Override public void close() throws SQLException { connection.close(); }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

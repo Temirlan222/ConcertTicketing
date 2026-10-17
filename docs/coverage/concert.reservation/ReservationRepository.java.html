@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReservationRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ConcertTicketing</a> &gt; <a href="index.source.html" class="el_package">concert.reservation</a> &gt; <span class="el_source">ReservationRepository.java</span></div><h1>ReservationRepository.java</h1><pre class="source lang-java linenums">package concert.reservation;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
+/** SQLite persistence for reservations; transaction ownership stays with the caller. */
+public class ReservationRepository {
+    private final Connection connection;
+
+<span class="fc" id="L16">    public ReservationRepository(Connection connection) {</span>
+<span class="fc" id="L17">        this.connection = Objects.requireNonNull(connection, &quot;connection&quot;);</span>
+<span class="fc" id="L18">    }</span>
+
+    public void save(SeatReservation reservation) throws SQLException {
+<span class="fc" id="L21">        Objects.requireNonNull(reservation, &quot;reservation&quot;);</span>
+<span class="fc" id="L22">        String sql = &quot;INSERT INTO seat_reservations(id,event_id,seat_id,price,status) VALUES(?,?,?,?,?) &quot;</span>
+                + &quot;ON CONFLICT(id) DO UPDATE SET event_id=excluded.event_id,seat_id=excluded.seat_id,&quot;
+                + &quot;price=excluded.price,status=excluded.status&quot;;
+<span class="fc" id="L25">        try (PreparedStatement statement = connection.prepareStatement(sql)) {</span>
+<span class="fc" id="L26">            statement.setInt(1, reservation.reservationId);</span>
+<span class="fc" id="L27">            statement.setInt(2, reservation.eventId);</span>
+<span class="fc" id="L28">            statement.setInt(3, reservation.seatId);</span>
+<span class="fc" id="L29">            statement.setInt(4, reservation.price);</span>
+<span class="fc" id="L30">            statement.setString(5, reservation.getStatus());</span>
+<span class="fc" id="L31">            statement.executeUpdate();</span>
+        }
+<span class="fc" id="L33">    }</span>
+
+    public Optional&lt;SeatReservation&gt; find(int id) throws SQLException {
+<span class="fc" id="L36">        try (PreparedStatement statement = connection.prepareStatement(</span>
+                &quot;SELECT id,event_id,seat_id,price,status FROM seat_reservations WHERE id=?&quot;)) {
+<span class="fc" id="L38">            statement.setInt(1, id);</span>
+<span class="fc" id="L39">            try (ResultSet result = statement.executeQuery()) {</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">                return result.next() ? Optional.of(read(result)) : Optional.empty();</span>
+            }
+        }
+    }
+
+    public List&lt;SeatReservation&gt; all() throws SQLException {
+<span class="fc" id="L46">        List&lt;SeatReservation&gt; reservations = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L47">        try (PreparedStatement statement = connection.prepareStatement(</span>
+                &quot;SELECT id,event_id,seat_id,price,status FROM seat_reservations ORDER BY id&quot;);
+<span class="fc" id="L49">             ResultSet result = statement.executeQuery()) {</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">            while (result.next()) {</span>
+<span class="fc" id="L51">                reservations.add(read(result));</span>
+            }
+        }
+<span class="fc" id="L54">        return reservations;</span>
+    }
+
+    public boolean isReserved(int eventId, int seatId) throws SQLException {
+<span class="fc" id="L58">        try (PreparedStatement statement = connection.prepareStatement(</span>
+                &quot;SELECT 1 FROM seat_reservations WHERE event_id=? AND seat_id=? AND status='RESERVED'&quot;)) {
+<span class="fc" id="L60">            statement.setInt(1, eventId);</span>
+<span class="fc" id="L61">            statement.setInt(2, seatId);</span>
+<span class="fc" id="L62">            try (ResultSet result = statement.executeQuery()) {</span>
+<span class="fc" id="L63">                return result.next();</span>
+            }
+        }
+    }
+
+    private SeatReservation read(ResultSet result) throws SQLException {
+<span class="fc" id="L69">        return new SeatReservation(result.getInt(&quot;id&quot;), result.getInt(&quot;event_id&quot;),</span>
+<span class="fc" id="L70">                result.getInt(&quot;seat_id&quot;), result.getInt(&quot;price&quot;), result.getString(&quot;status&quot;));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

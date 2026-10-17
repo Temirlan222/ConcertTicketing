@@ -1,0 +1,17 @@
+SELECT * FROM workflows ORDER BY id
+[(1, 100, 30, 'CLI-PARTIAL-UNDO', 'COMPENSATED', 'Access gate is closed for event 100')]
+
+SELECT * FROM seat_reservations ORDER BY id
+[(1, 100, 30, 12000, 'RELEASED')]
+
+SELECT * FROM ticket_processing ORDER BY id
+[(1, 'CLI-PARTIAL-UNDO', 'VOIDED')]
+
+SELECT * FROM ticket_access ORDER BY id
+[(1, 'CLI-PARTIAL-UNDO', 100, 12000, 'REFUNDED', 12000)]
+
+SELECT * FROM gate_settings ORDER BY event_id
+[(100, 0)]
+
+SELECT * FROM workflow_events ORDER BY seq
+[(1, 1, 'A_RESERVED'), (2, 1, 'B_PRINTED'), (3, 1, 'C_REFUNDED'), (4, 1, 'B_VOIDED'), (5, 1, 'A_RELEASED')]

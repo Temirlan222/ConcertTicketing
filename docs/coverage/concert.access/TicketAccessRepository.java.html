@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TicketAccessRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ConcertTicketing</a> &gt; <a href="index.source.html" class="el_package">concert.access</a> &gt; <span class="el_source">TicketAccessRepository.java</span></div><h1>TicketAccessRepository.java</h1><pre class="source lang-java linenums">package concert.access;
+
+import concert.BookingException;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
+public final class TicketAccessRepository {
+    private final Connection connection;
+
+<span class="fc" id="L17">    public TicketAccessRepository(Connection connection) {</span>
+<span class="fc" id="L18">        this.connection = Objects.requireNonNull(connection);</span>
+<span class="fc" id="L19">    }</span>
+
+    public void save(TicketAccess access) throws SQLException {
+<span class="fc" id="L22">        String sql = &quot;INSERT INTO ticket_access (id,ticket_code,event_id,amount,status,refunded_amount) &quot;</span>
+                + &quot;VALUES (?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET &quot;
+                + &quot;ticket_code=excluded.ticket_code,event_id=excluded.event_id,amount=excluded.amount,&quot;
+                + &quot;status=excluded.status,refunded_amount=excluded.refunded_amount&quot;;
+<span class="fc" id="L26">        try (PreparedStatement statement = connection.prepareStatement(sql)) {</span>
+<span class="fc" id="L27">            statement.setInt(1, access.id);</span>
+<span class="fc" id="L28">            statement.setString(2, access.ticketCode);</span>
+<span class="fc" id="L29">            statement.setInt(3, access.eventId);</span>
+<span class="fc" id="L30">            statement.setInt(4, access.amount);</span>
+<span class="fc" id="L31">            statement.setString(5, access.getStatus());</span>
+<span class="fc" id="L32">            statement.setInt(6, access.getRefundedAmount());</span>
+<span class="fc" id="L33">            statement.executeUpdate();</span>
+        }
+<span class="fc" id="L35">    }</span>
+
+    public Optional&lt;TicketAccess&gt; find(int id) throws SQLException {
+<span class="fc" id="L38">        try (PreparedStatement statement = connection.prepareStatement(&quot;SELECT * FROM ticket_access WHERE id=?&quot;)) {</span>
+<span class="fc" id="L39">            statement.setInt(1, id);</span>
+<span class="fc" id="L40">            try (ResultSet rows = statement.executeQuery()) {</span>
+<span class="fc bfc" id="L41" title="All 2 branches covered.">                return rows.next() ? Optional.of(read(rows)) : Optional.empty();</span>
+            }
+        }
+    }
+
+    public List&lt;TicketAccess&gt; all() throws SQLException {
+<span class="fc" id="L47">        List&lt;TicketAccess&gt; accesses = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L48">        try (PreparedStatement statement = connection.prepareStatement(&quot;SELECT * FROM ticket_access ORDER BY id&quot;);</span>
+<span class="fc" id="L49">             ResultSet rows = statement.executeQuery()) {</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">            while (rows.next()) {</span>
+<span class="fc" id="L51">                accesses.add(read(rows));</span>
+            }
+        }
+<span class="fc" id="L54">        return accesses;</span>
+    }
+
+    public boolean isGateOpen(int eventId) throws SQLException {
+<span class="fc" id="L58">        requireEventId(eventId);</span>
+<span class="fc" id="L59">        try (PreparedStatement statement = connection.prepareStatement(&quot;SELECT is_open FROM gate_settings WHERE event_id=?&quot;)) {</span>
+<span class="fc" id="L60">            statement.setInt(1, eventId);</span>
+<span class="fc" id="L61">            try (ResultSet rows = statement.executeQuery()) {</span>
+<span class="fc bfc" id="L62" title="All 4 branches covered.">                return !rows.next() || rows.getInt(&quot;is_open&quot;) != 0;</span>
+            }
+        }
+    }
+
+    public void setGateOpen(int eventId, boolean open) throws SQLException {
+<span class="fc" id="L68">        requireEventId(eventId);</span>
+<span class="fc" id="L69">        String sql = &quot;INSERT INTO gate_settings (event_id,is_open) VALUES (?,?) &quot;</span>
+                + &quot;ON CONFLICT(event_id) DO UPDATE SET is_open=excluded.is_open&quot;;
+<span class="fc" id="L71">        try (PreparedStatement statement = connection.prepareStatement(sql)) {</span>
+<span class="fc" id="L72">            statement.setInt(1, eventId);</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">            statement.setInt(2, open ? 1 : 0);</span>
+<span class="fc" id="L74">            statement.executeUpdate();</span>
+        }
+<span class="fc" id="L76">    }</span>
+
+    private TicketAccess read(ResultSet rows) throws SQLException {
+<span class="fc" id="L79">        return new TicketAccess(rows.getInt(&quot;id&quot;), rows.getString(&quot;ticket_code&quot;),</span>
+<span class="fc" id="L80">                rows.getInt(&quot;event_id&quot;), rows.getInt(&quot;amount&quot;),</span>
+<span class="fc" id="L81">                rows.getString(&quot;status&quot;), rows.getInt(&quot;refunded_amount&quot;));</span>
+    }
+
+    private void requireEventId(int eventId) {
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">        if (eventId &lt;= 0) {</span>
+<span class="nc" id="L86">            throw new BookingException(&quot;Event ID must be positive&quot;);</span>
+        }
+<span class="fc" id="L88">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

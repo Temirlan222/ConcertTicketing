@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TicketAccess.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ConcertTicketing</a> &gt; <a href="index.source.html" class="el_package">concert.access</a> &gt; <span class="el_source">TicketAccess.java</span></div><h1>TicketAccess.java</h1><pre class="source lang-java linenums">package concert.access;
+
+import concert.BookingException;
+
+public final class TicketAccess {
+    public final int id;
+    public final String ticketCode;
+    public final int eventId;
+    public final int amount;
+    private String status;
+    private int refundedAmount;
+
+    public TicketAccess(int id, String ticketCode, int eventId, int amount) {
+<span class="fc" id="L14">        this(id, ticketCode, eventId, amount, &quot;PENDING&quot;, 0);</span>
+<span class="fc" id="L15">    }</span>
+
+    public TicketAccess(int id, String ticketCode, int eventId, int amount,
+<span class="fc" id="L18">                        String status, int refundedAmount) {</span>
+<span class="fc bfc" id="L19" title="All 10 branches covered.">        if (id &lt;= 0 || eventId &lt;= 0 || amount &lt;= 0 || ticketCode == null || ticketCode.isBlank()) {</span>
+<span class="fc" id="L20">            throw new BookingException(&quot;Access needs positive IDs, a ticket code and a positive amount&quot;);</span>
+        }
+<span class="fc bfc" id="L22" title="All 4 branches covered.">        if (!&quot;PENDING&quot;.equals(status) &amp;&amp; !&quot;APPROVED&quot;.equals(status)</span>
+<span class="fc bfc" id="L23" title="All 4 branches covered.">                &amp;&amp; !&quot;REJECTED&quot;.equals(status) &amp;&amp; !&quot;REFUNDED&quot;.equals(status)) {</span>
+<span class="fc" id="L24">            throw new BookingException(&quot;Unknown access status&quot;);</span>
+        }
+<span class="fc bfc" id="L26" title="All 4 branches covered.">        if ((&quot;REFUNDED&quot;.equals(status) &amp;&amp; refundedAmount != amount)</span>
+<span class="fc bfc" id="L27" title="All 4 branches covered.">                || (!&quot;REFUNDED&quot;.equals(status) &amp;&amp; refundedAmount != 0)) {</span>
+<span class="fc" id="L28">            throw new BookingException(&quot;Refund amount is inconsistent with access status&quot;);</span>
+        }
+<span class="fc" id="L30">        this.id = id;</span>
+<span class="fc" id="L31">        this.ticketCode = ticketCode;</span>
+<span class="fc" id="L32">        this.eventId = eventId;</span>
+<span class="fc" id="L33">        this.amount = amount;</span>
+<span class="fc" id="L34">        this.status = status;</span>
+<span class="fc" id="L35">        this.refundedAmount = refundedAmount;</span>
+<span class="fc" id="L36">    }</span>
+
+    public String getStatus() {
+<span class="fc" id="L39">        return status;</span>
+    }
+
+    public int getRefundedAmount() {
+<span class="fc" id="L43">        return refundedAmount;</span>
+    }
+
+    public void approve() {
+<span class="fc" id="L47">        requireStatus(&quot;PENDING&quot;);</span>
+<span class="fc" id="L48">        status = &quot;APPROVED&quot;;</span>
+<span class="fc" id="L49">    }</span>
+
+    public void reject() {
+<span class="fc" id="L52">        requireStatus(&quot;PENDING&quot;);</span>
+<span class="fc" id="L53">        status = &quot;REJECTED&quot;;</span>
+<span class="fc" id="L54">    }</span>
+
+    public void refund() {
+<span class="fc" id="L57">        requireStatus(&quot;REJECTED&quot;);</span>
+<span class="fc" id="L58">        refundedAmount = amount;</span>
+<span class="fc" id="L59">        status = &quot;REFUNDED&quot;;</span>
+<span class="fc" id="L60">    }</span>
+
+    private void requireStatus(String expected) {
+<span class="fc bfc" id="L63" title="All 2 branches covered.">        if (!expected.equals(status)) {</span>
+<span class="fc" id="L64">            throw new BookingException(&quot;Access must be &quot; + expected + &quot;; current status is &quot; + status);</span>
+        }
+<span class="fc" id="L66">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

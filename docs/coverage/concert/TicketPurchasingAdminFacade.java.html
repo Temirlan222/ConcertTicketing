@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TicketPurchasingAdminFacade.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ConcertTicketing</a> &gt; <a href="index.source.html" class="el_package">concert</a> &gt; <span class="el_source">TicketPurchasingAdminFacade.java</span></div><h1>TicketPurchasingAdminFacade.java</h1><pre class="source lang-java linenums">package concert;
+
+import concert.reservation.ReservationRepository;
+import concert.processing.TicketProcessingRepository;
+import concert.access.TicketAccessRepository;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+public final class TicketPurchasingAdminFacade {
+    private final Database database;
+    private final WorkflowRepository workflows;
+    private final TicketPurchasingFacade purchasing;
+
+<span class="fc" id="L16">    public TicketPurchasingAdminFacade(Database database) {</span>
+<span class="fc" id="L17">        this.database = database;</span>
+<span class="fc" id="L18">        workflows = new WorkflowRepository(database.connection());</span>
+<span class="fc" id="L19">        purchasing = new TicketPurchasingFacade(database);</span>
+<span class="fc" id="L20">    }</span>
+
+    public Workflow getPersistedState(int id) throws SQLException {
+<span class="fc" id="L23">        return workflows.find(id).orElseThrow(() -&gt; new BookingException(&quot;Unknown workflow: &quot; + id));</span>
+    }
+
+    public List&lt;Workflow&gt; listPurchases() throws SQLException {
+<span class="fc" id="L27">        return workflows.all();</span>
+    }
+
+    public Workflow startCompensation(int id) throws SQLException {
+<span class="fc" id="L31">        return purchasing.startCompensation(id);</span>
+    }
+
+    public void setGateOpen(int eventId, boolean open) throws SQLException {
+<span class="fc" id="L35">        new TicketAccessRepository(database.connection()).setGateOpen(eventId, open);</span>
+<span class="fc" id="L36">    }</span>
+
+    public List&lt;Workflow&gt; recoverAll() throws SQLException {
+<span class="fc" id="L39">        var recovered = new ArrayList&lt;Workflow&gt;();</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        for (var w : workflows.all()) {</span>
+<span class="fc bfc" id="L41" title="All 2 branches covered.">            if (!w.isTerminal()) {</span>
+<span class="fc" id="L42">                recovered.add(purchasing.resume(w.id()));</span>
+            }
+<span class="fc" id="L44">        }</span>
+<span class="fc" id="L45">        return recovered;</span>
+    }
+
+    public String inspect() throws SQLException {
+<span class="fc" id="L49">        var out = new StringBuilder(&quot;WORKFLOWS\n&quot;);</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">        for (var w : workflows.all()) {</span>
+<span class="fc" id="L51">            out.append(w)</span>
+<span class="fc" id="L52">                    .append(&quot; events=&quot;)</span>
+<span class="fc" id="L53">                    .append(workflows.events(w.id()))</span>
+<span class="fc" id="L54">                    .append('\n');</span>
+<span class="fc" id="L55">        }</span>
+<span class="fc" id="L56">        out.append(&quot;A RESERVATIONS\n&quot;);</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        for (var r : new ReservationRepository(database.connection()).all()) {</span>
+<span class="fc" id="L58">            out.append(r.reservationId)</span>
+<span class="fc" id="L59">                    .append(&quot; event=&quot;)</span>
+<span class="fc" id="L60">                    .append(r.eventId)</span>
+<span class="fc" id="L61">                    .append(&quot; seat=&quot;)</span>
+<span class="fc" id="L62">                    .append(r.seatId)</span>
+<span class="fc" id="L63">                    .append(&quot; price=&quot;)</span>
+<span class="fc" id="L64">                    .append(r.price)</span>
+<span class="fc" id="L65">                    .append(' ')</span>
+<span class="fc" id="L66">                    .append(r.getStatus())</span>
+<span class="fc" id="L67">                    .append('\n');</span>
+<span class="fc" id="L68">        }</span>
+<span class="fc" id="L69">        out.append(&quot;B TICKETS\n&quot;);</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">        for (var t : new TicketProcessingRepository(database.connection()).all()) {</span>
+<span class="fc" id="L71">            out.append(t.id)</span>
+<span class="fc" id="L72">                    .append(' ')</span>
+<span class="fc" id="L73">                    .append(t.ticketCode)</span>
+<span class="fc" id="L74">                    .append(' ')</span>
+<span class="fc" id="L75">                    .append(t.getStatus())</span>
+<span class="fc" id="L76">                    .append('\n');</span>
+<span class="fc" id="L77">        }</span>
+<span class="fc" id="L78">        out.append(&quot;C ACCESS / LOCAL REFUND CREDIT (KZT)\n&quot;);</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">        for (var c : new TicketAccessRepository(database.connection()).all()) {</span>
+<span class="fc" id="L80">            out.append(c.id)</span>
+<span class="fc" id="L81">                    .append(' ')</span>
+<span class="fc" id="L82">                    .append(c.ticketCode)</span>
+<span class="fc" id="L83">                    .append(&quot; event=&quot;)</span>
+<span class="fc" id="L84">                    .append(c.eventId)</span>
+<span class="fc" id="L85">                    .append(' ')</span>
+<span class="fc" id="L86">                    .append(c.getStatus())</span>
+<span class="fc" id="L87">                    .append(&quot; refund=&quot;)</span>
+<span class="fc" id="L88">                    .append(c.getRefundedAmount())</span>
+<span class="fc" id="L89">                    .append('\n');</span>
+<span class="fc" id="L90">        }</span>
+<span class="fc" id="L91">        return out.toString();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -1,0 +1,99 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] --------------------< org.example:ConcertTicketing >--------------------
+[INFO] Building ConcertTicketing 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.2.0:clean (default-clean) @ ConcertTicketing ---
+[INFO] Deleting USER_HOME\Documents\Codex\2026-10-17\java-concertticketing-assignment-4-10-concert\outputs\ConcertTicketing\target
+[INFO] 
+[INFO] --- jacoco:0.8.14:prepare-agent (default) @ ConcertTicketing ---
+[INFO] argLine set to -javaagent:USER_HOME\\Documents\\Codex\\maven-cache\\org\\jacoco\\org.jacoco.agent\\0.8.14\\org.jacoco.agent-0.8.14-runtime.jar=destfile=USER_HOME\\Documents\\Codex\\2026-10-17\\java-concertticketing-assignment-4-10-concert\\outputs\\ConcertTicketing\\target\\jacoco.exec
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ ConcertTicketing ---
+[INFO] skip non existing resourceDirectory USER_HOME\Documents\Codex\2026-10-17\java-concertticketing-assignment-4-10-concert\outputs\ConcertTicketing\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ ConcertTicketing ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 19 source files with javac [debug release 25] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ ConcertTicketing ---
+[INFO] skip non existing resourceDirectory USER_HOME\Documents\Codex\2026-10-17\java-concertticketing-assignment-4-10-concert\outputs\ConcertTicketing\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ ConcertTicketing ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 11 source files with javac [debug release 25] to target\test-classes
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ ConcertTicketing ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running concert.access.TicketAccessRepositoryTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.908 s -- in concert.access.TicketAccessRepositoryTest
+[INFO] Running concert.access.TicketAccessTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.030 s -- in concert.access.TicketAccessTest
+[INFO] Running concert.MainTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.889 s -- in concert.MainTest
+[INFO] Running concert.processing.TicketProcessingRepositoryTest
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.984 s -- in concert.processing.TicketProcessingRepositoryTest
+[INFO] Running concert.processing.TicketProcessingTest
+[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.185 s -- in concert.processing.TicketProcessingTest
+[INFO] Running concert.reservation.ReservationRepositoryTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.516 s -- in concert.reservation.ReservationRepositoryTest
+[INFO] Running concert.reservation.SeatingAndPricingTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.221 s -- in concert.reservation.SeatingAndPricingTest
+[INFO] Running concert.reservation.SeatReservationStateTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.030 s -- in concert.reservation.SeatReservationStateTest
+[INFO] Running concert.WorkflowStateTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.021 s -- in concert.WorkflowStateTest
+[INFO] Running concert.WorkflowTest
+[INFO] Tests run: 20, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.394 s -- in concert.WorkflowTest
+[INFO] Running SeatReservationTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in SeatReservationTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 72, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- jacoco:0.8.14:report (report) @ ConcertTicketing ---
+[INFO] Loading execution data file USER_HOME\Documents\Codex\2026-10-17\java-concertticketing-assignment-4-10-concert\outputs\ConcertTicketing\target\jacoco.exec
+[INFO] Analyzed bundle 'ConcertTicketing' with 20 classes
+[INFO] 
+[INFO] --- jar:3.4.1:jar (default-jar) @ ConcertTicketing ---
+[INFO] Building jar: USER_HOME\Documents\Codex\2026-10-17\java-concertticketing-assignment-4-10-concert\outputs\ConcertTicketing\target\ConcertTicketing-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- shade:3.6.1:shade (default) @ ConcertTicketing ---
+[WARNING] ConcertTicketing-1.0-SNAPSHOT.jar, sqlite-jdbc-3.50.3.0.jar define 1 overlapping resource: 
+[WARNING]   - META-INF/MANIFEST.MF
+[WARNING] maven-shade-plugin has detected that some files are
+[WARNING] present in two or more JARs. When this happens, only one
+[WARNING] single version of the file is copied to the uber jar.
+[WARNING] Usually this is not harmful and you can skip these warnings,
+[WARNING] otherwise try to manually exclude artifacts based on
+[WARNING] mvn dependency:tree -Ddetail=true and the above output.
+[WARNING] See https://maven.apache.org/plugins/maven-shade-plugin/
+[INFO] 
+[INFO] --- jacoco:0.8.14:check (check) @ ConcertTicketing ---
+[INFO] Loading execution data file USER_HOME\Documents\Codex\2026-10-17\java-concertticketing-assignment-4-10-concert\outputs\ConcertTicketing\target\jacoco.exec
+[INFO] Analyzed bundle 'ConcertTicketing' with 20 classes
+[INFO] All coverage checks have been met.
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  24.384 s
+[INFO] Finished at: 2026-10-17T22:30:37+05:00
+[INFO] ------------------------------------------------------------------------
+Concert Ticketing | SQLite: USER_HOME\Documents\Codex\2026-10-17\java-concertticketing-assignment-4-10-concert\work\launcher-demo.db
+
+1 Buy | 2 Inspect | 3 Gate open/close | 4 Recover | 5 Compensate | 6 Pause after A | 7 One stage | 0 Exit
+
+STDERR
+Access is denied.
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::staticFieldBase has been called by com.google.inject.internal.aop.HiddenClassDefiner (file:/D:/IntelliJ%20IDEA%202025.3/plugins/maven/lib/maven3/lib/guice-5.1.0-classes.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.inject.internal.aop.HiddenClassDefiner
+WARNING: sun.misc.Unsafe::staticFieldBase will be removed in a future release

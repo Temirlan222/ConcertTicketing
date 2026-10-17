@@ -1,0 +1,17 @@
+SELECT * FROM workflows ORDER BY id
+[(1, 100, 15, 'CLI-SUCCESS', 'COMPLETED', '')]
+
+SELECT * FROM seat_reservations ORDER BY id
+[(1, 100, 15, 12000, 'RESERVED')]
+
+SELECT * FROM ticket_processing ORDER BY id
+[(1, 'CLI-SUCCESS', 'PRINTED')]
+
+SELECT * FROM ticket_access ORDER BY id
+[(1, 'CLI-SUCCESS', 100, 12000, 'APPROVED', 0)]
+
+SELECT * FROM gate_settings ORDER BY event_id
+[]
+
+SELECT * FROM workflow_events ORDER BY seq
+[(1, 1, 'A_RESERVED'), (2, 1, 'B_PRINTED'), (3, 1, 'C_APPROVED')]
